@@ -49,7 +49,7 @@ claude.ai/code/routines に登録するプロンプトは下記 **3 行のテン
 
 ```
 このルーチンの最新仕様を以下から取得して実行してください:
-https://raw.githubusercontent.com/asano1234567890my/ai-secretary-routines/master/routines/<name>.md
+https://raw.githubusercontent.com/asano1234567890my/ai-secretary-routines/main/routines/<name>.md
 最新の v2 仕様で動作してください。
 ```
 
