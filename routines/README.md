@@ -14,6 +14,7 @@
 | `mycontext-update.md` | `45 23 * * 0` | 日曜 23:45、MyContext.md 再生成 (Telegram 通知なし、裏方) |
 | `monthly-strategy-review.md` | `0 9 1 * *` | 月初 9:00、career_milestones 提案 → 承認カード Telegram |
 | `inbox-triage.md` | `0 18 * * 6` | 土曜 18:00、滞留 inbox の振り分け促し |
+| `code-review.md` | `0 21 * * *` | 毎日 21:00、対象 repo の直近 24h commit 整合性チェック (Phase 1 T4、PoC: oncall-app のみ) |
 
 cron は claude.ai/code/routines に登録するもの。月次プリセットが UI に無いため、monthly-strategy-review は CLI `/schedule update` で `0 9 1 * *` を設定する必要あり。
 
