@@ -23,7 +23,7 @@
 ### テンプレート
 
 ```markdown
-# MyContext - MASA の外部脳 目次
+# MyContext - MASA の脳 目次
 
 > 最終更新: YYYY-MM-DD HH:MM JST (Routine: mycontext-update)
 > 会話開始時に最初に読む目次。詳細は各ファイルへ誘導する。

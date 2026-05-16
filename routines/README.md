@@ -37,6 +37,17 @@ v2 では `lifecycle_stage` が `state` に置換され、Inbox は「動的 vie
 - 1 行 30 字目安、全体 8〜20 行 (routine 別)
 - 統合された文章で書く (羅列禁止)
 
+## 共通言語 (2026-05-16 確定)
+
+ユーザーが会話/出力で **「脳」「思考」** という単語を使うときの意味:
+
+- **脳** = ai-secretary DB の記憶層 (Supabase items / facts / contexts / strategy_items + git 管理 md ファイル群)。本 routine が `read_full_context()` / `read_markdown()` 等で参照しているもの全体を指す
+- **思考** = claude.ai LLM (Opus 4.7) 自身。脳を参照せず純粋に推論で応答する場面
+
+各 routine の Telegram 出力本文では基本的に「脳」「思考」という単語を**ユーザーが先に使わない限り出さない**。秘書からの便りは自然な日本語のままで、用語は内部理解として扱う。
+
+詳細: `~/shared-core/memory/feedback_terminology_brain.md` / `docs/single_source_operation.md`
+
 ## 廃止された依存
 
 実データ調査 (2026-05-05) で以下が機能していないと判明:
