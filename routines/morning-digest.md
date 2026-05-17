@@ -14,7 +14,7 @@
 3. `read_markdown(repo="claude-shared", path="MyContext.md")` で「今やるべきこと」curated 文章
 4. `get_today_workload()` で今日の GCal events + due_today + overdue + active_projects を集約
 5. `list_gmail_threads_needing_reply(importance="high", hours_back=12)` で要返信メール
-6. **進捗の主ソース** = git commits: `read_full_context().active_strategy` で重要 project を 2〜3 個選び、それぞれ `list_repo_commits(repo=<slug>, limit=10)` で過去 24h 程度の動きを把握。dev_note は補助 (recent_dev_notes 5 件を見て、commit に出ない動きを拾う)
+6. **進捗の主ソース** = git commits: `read_full_context().active_strategy` で重要 project を 2〜3 個選び、それぞれ `list_repo_commits(repo=<slug>, limit=10)` で過去 24h 程度の動きを把握。dev_note は補助 (`pinned_dev_notes` で長期的に重要なもの + `recent_dev_notes` 直近 10 件を見て、commit に出ない動きを拾う、H7 で索引拡張)
 
 ## 2. 組み立てルール
 

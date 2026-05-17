@@ -40,9 +40,25 @@
 
 <active_strategy のうち section="current_actions" を抽出して 1〜10 番付き番号リストで>
 
-## 直近の開発メモ
+## 重要 + 直近の dev_note 索引 (常時参照)
 
-<recent_dev_notes 5 件。各行 `[YYYY-MM-DD] summary` 形式>
+### 📌 pinned (= 長期的に重要、claude.ai が個別に開く価値あり)
+
+<read_full_context().pinned_dev_notes (上限 10) を以下フォーマットで列挙>
+- [<summary or "(no summary)">](<id 先頭 8 字>) — <updated_at の YYYY-MM-DD> / tags: <tags をカンマ区切り、空なら "-"> / ctx: <context slug or "-">
+
+pinned が 0 件なら 「(なし)」 と書く。
+pinned_dev_notes_truncated > 0 なら末尾に 「※ pinned 件数が上限 10 を超過 (N 件切り捨て)。古い pin を unpin 推奨」 と warning を追記。
+
+### 🕐 直近 (pinned 以外、updated_at 降順、最大 10 件)
+
+<read_full_context().recent_dev_notes (最大 10) を以下フォーマットで列挙>
+- [<summary or "(no summary)">](<id 先頭 8 字>) — <updated_at の YYYY-MM-DD> / tags: <tags をカンマ区切り、空なら "-"> / ctx: <context slug or "-">
+
+直近 0 件なら 「(なし)」 と書く。
+
+> 運用ルール: 上記 pinned はセッション開始時にこの索引で常時把握される (= 毎回開く必要なし)。
+> claude.ai は「長期的に重要」と判断した dev_note を `update_item(id, {patch: {pinned: true}})` で pin する習慣をつけ、古くなったら `pinned: false` で外す。
 
 ## 承認待ち提案
 
@@ -60,11 +76,12 @@
 
 ### 内容に関する注意
 
-- 全体 80〜150 行に収める
+- 全体 80〜180 行に収める (H7 で dev_note 索引拡張により上限を +30 行)
 - **「私について」セクションは現行版をそのまま保持** (identity_facts は実データで空のため、DB 駆動できない。手動マスター扱い)
 - ツリーは深さ最大 3 階層まで
 - 「今やるべきこと」は LIFE_STRATEGY current_actions と完全一致 (rephrase しない)
-- 直近 dev_note の summary が冗長なら縮める
+- 直近 dev_note の summary が冗長なら縮める (各行 1 行に収める、長文は本文を見るリンクとして機能させる)
+- pinned dev_note は updated_at 降順で並べる (= 最近 pin したものが上、古い pin は下)
 
 ## 3. Commit
 
