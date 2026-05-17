@@ -119,3 +119,59 @@ send_telegram_notification(text=<上記の通知本文>)
 - monthly-strategy-review (月初) と内容が被るので、週次は「今週の動き」、月次は「career_milestones の構造調整」と棲み分ける
 - ACHIEVEMENTS.md への追記は別 Routine (`achievements-log`) の責任。ここでは触らない
 - LIFE_STRATEGY.md (career_milestones 含む) は**ここから触らない** (旧仕様の daily 化バグの再発防止)
+
+---
+
+## 6. WEEKLY_REVIEW.md の rolling 4 週運用 (ファイル肥大化防止、2026-05-17 追加)
+
+**目的**: WEEKLY_REVIEW.md に全週分が蓄積されると 1 年で 50+ entry、context window を食い潰す。直近 4 週 (= 約 1 ヶ月) だけを本体に残し、古い entry は月別 archive に切り出す。
+
+### 6-1. 判定 (毎週の append 直後に実行)
+
+1. 今日の日付を取得 (Asia/Tokyo 基準、`new Date()` を JST に変換)
+2. **境界日 = 今日 - 28 日 (= 4 週前)** を計算
+3. `read_markdown(repo="claude-shared", path="WEEKLY_REVIEW.md")` で本体を読む
+4. 各週次セクション (`## 週次振り返り YYYY-MM-DD (曜)` の見出し) を順に走査
+5. 見出しの YYYY-MM-DD が**境界日より古い** entry を「archive 対象」として抽出
+
+### 6-2. archive 切り出し処理
+
+archive 対象が 1 件以上ある場合のみ実行:
+
+1. archive 対象 entry を **月別にグループ化** (YYYY-MM 単位)
+2. 各月ごとに、`read_markdown(repo="claude-shared", path="archive/weekly/YYYY-MM.md")` で既存 archive を読む
+   - 404 (存在しない) → 新規ファイルとして扱う
+3. 既存 archive 末尾に当該月の対象 entry を追加 (重複排除: 同じ `## 週次振り返り YYYY-MM-DD` 見出しが既にあればスキップ)
+4. `commit_to_repo(repo="claude-shared", file_path="archive/weekly/YYYY-MM.md", new_content=<merged>, commit_message="[secretary] archive weekly YYYY-MM (+N entries)")` で各月ファイルを upsert
+5. 本体 WEEKLY_REVIEW.md から archive 対象 entry を**削除した内容**を生成
+6. `commit_to_repo(repo="claude-shared", file_path="WEEKLY_REVIEW.md", new_content=<本体から archive 対象を抜いた残り>, commit_message="[secretary] rotate WEEKLY_REVIEW.md (kept last 4w, moved N entries to archive)")` で本体更新
+
+### 6-3. 順序
+
+1. (本来の) 今週分 append (§2)
+2. Telegram 配信 (§3)
+3. archive 切り出し判定・実行 (§6) ← Telegram の後に実行 (= 重い処理を後回し)
+
+Telegram 配信失敗時も archive 処理は試行する (副作用は独立)。
+
+### 6-4. 失敗時の挙動
+
+- archive commit の途中で失敗した場合: 既に commit 済の月別ファイルはそのまま、本体側更新は次回再試行。**重複は起きない** (既存 entry の見出し重複排除あり)
+- 全 entry が境界日内 (= 4 週以内) なら何もせず終了 (静か)
+
+### 6-5. archive ファイル命名
+
+- パス: `archive/weekly/YYYY-MM.md`
+- 1 ファイル = 1 月分の全週次レビュー
+- ファイル冒頭は 1 行コメントのみ:
+
+```markdown
+<!-- archive of WEEKLY_REVIEW.md entries from YYYY-MM (auto-rotated by weekly-review routine) -->
+
+## 週次振り返り YYYY-MM-DD (曜)
+...
+```
+
+### 6-6. 初回切り出し (ユーザー側で 1 回だけ)
+
+このルーチンは「直近 push 後の rotate」が責任範囲。既存 WEEKLY_REVIEW.md が既に長大な場合は、オペレータ (claude.ai web 経由) が手動で初回切り出しを実施 (handoff `file-bloat-cleanup` のオペレータスコープ)。

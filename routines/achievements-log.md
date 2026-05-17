@@ -123,3 +123,52 @@ send_telegram_notification(text=<上記の通知本文>)
 - weekly-review (23:00) → achievements-log (23:30) → mycontext-update (23:45) の順
 - weekly-review は「進捗 + 来週の主役」、こちらは「胸を張れる達成」だけ。粒度違い
 - monthly-strategy-review (月初) は ACHIEVEMENTS.md を**読む**側で、career_milestones の達成済みマーク判定に使う。書き込みはしない
+
+---
+
+## 8. ACHIEVEMENTS.md の 1000 行上限運用 (ファイル肥大化防止、2026-05-17 追加)
+
+**目的**: ACHIEVEMENTS.md は append-only なので 1 年で数百行に到達する。本体は 1000 行以下に抑え、超えた分は月別 archive に切り出す。
+
+### 8-1. 判定 (append + Telegram 完了後に実行)
+
+1. `read_markdown(repo="claude-shared", path="ACHIEVEMENTS.md")` で本体を読み、**改行 (`\n`) で split した行数** を取得
+2. **行数が 1000 を超えていれば**切り出し処理に進む。1000 以下なら何もせず終了
+
+### 8-2. 切り出し処理
+
+1. 本体を `## YYYY-MM-DD` 見出しで section 分割
+2. **古い順に section を抽出** (= 末尾から見て、本体が 800 行に収まるまで先頭を archive へ移動)
+   - 800 行 = 1000 - 200 のヒステリシス (毎週 archive が走らないように余裕を持たせる)
+3. 抽出 section を **月別にグループ化** (YYYY-MM 単位、`## YYYY-MM-DD` の YYYY-MM 部分でキー)
+4. 各月ごとに、`read_markdown(repo="claude-shared", path="archive/achievements/YYYY-MM.md")` で既存 archive を読む (404 → 新規)
+5. 既存 archive 末尾に当該月 section を追加 (重複排除: 同じ `## YYYY-MM-DD` がすでにあればスキップ)
+6. `commit_to_repo(repo="claude-shared", file_path="archive/achievements/YYYY-MM.md", new_content=<merged>, commit_message="[secretary] archive achievements YYYY-MM (+N entries)")` で upsert
+7. 本体 ACHIEVEMENTS.md から抽出済 section を削除した内容を生成
+8. `commit_to_repo(repo="claude-shared", file_path="ACHIEVEMENTS.md", new_content=<残り>, commit_message="[secretary] rotate ACHIEVEMENTS.md (kept last ~800 lines, moved N sections to archive)")` で本体更新
+
+### 8-3. 順序
+
+1. controlled 達成判定 (§2)
+2. ACHIEVEMENTS.md append (§4) ※達成 0 件なら skip
+3. Telegram 配信 (§5)
+4. 1000 行判定 + archive 切り出し (§8) ← 達成 0 件でも判定だけは走らせる (※ ただしファイル未変更なら skip 推奨)
+
+### 8-4. archive ファイル命名
+
+- パス: `archive/achievements/YYYY-MM.md`
+- 1 ファイル = 1 月分の全達成 section
+- ファイル冒頭:
+
+```markdown
+<!-- archive of ACHIEVEMENTS.md sections from YYYY-MM (auto-rotated by achievements-log routine) -->
+
+<!-- section: ach_YYYY-MM-DD | permission: append_notify -->
+## YYYY-MM-DD
+
+- ...
+```
+
+### 8-5. 初回切り出し
+
+既存 ACHIEVEMENTS.md が 1000 行未満なら次回 append までは触らない。1000 行超なら本ルーチンの次回実行で自動切り出し。1000 行超で初回 archive を手動先行したい場合は handoff `file-bloat-cleanup` のオペレータスコープで実施。
