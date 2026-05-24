@@ -15,6 +15,7 @@
 | `monthly-strategy-review.md` | `0 9 1 * *` | 月初 9:00、career_milestones 提案 → 承認カード Telegram |
 | `inbox-triage.md` | `0 18 * * 6` | 土曜 18:00、滞留 inbox の振り分け促し |
 | `code-review.md` | `0 21 * * *` | 毎日 21:00、対象 repo の直近 24h commit 整合性チェック (Phase 1 T4、PoC: oncall-app のみ) |
+| `dev-note-from-commits.md` | `0 22 * * 0` | 日曜 22:00、REPO_MAP 全 repo の直近 1 週間 commit から repo ごとに週次開発ログ dev_note を自動生成 (A1、Telegram 通知なし、pin しない) |
 | `priority-assist.md` | `0 6 * * *` | 毎朝 6:00、当日負荷を集約し `claude-shared/TODAY.md` 書き出し (Phase 11.3、Telegram 通知なし) |
 | `progress-nudge.md` | `0 18 * * *` | 毎日 18:00、停滞 project (7 日以上動かず) を 1 件だけ優しく声かけ (Phase 11.3) |
 | `inbox-merge-suggest.md` | `0 23 * * *` | 毎日 23:00、inbox の重複候補を検出 → 統合提案を承認カードで送信 (Phase 11.3) |
