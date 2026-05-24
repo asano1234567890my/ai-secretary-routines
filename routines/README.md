@@ -18,6 +18,7 @@
 | `priority-assist.md` | `0 6 * * *` | 毎朝 6:00、当日負荷を集約し `claude-shared/TODAY.md` 書き出し (Phase 11.3、Telegram 通知なし) |
 | `progress-nudge.md` | `0 18 * * *` | 毎日 18:00、停滞 project (7 日以上動かず) を 1 件だけ優しく声かけ (Phase 11.3) |
 | `inbox-merge-suggest.md` | `0 23 * * *` | 毎日 23:00、inbox の重複候補を検出 → 統合提案を承認カードで送信 (Phase 11.3) |
+| `current-state-rotation.md` | `50 23 * * 0` | 日曜 23:50、claude-shared と ai-secretary の `CURRENT_STATE.md` で 1 週間以上動きのないセクションを `docs/session_log.md` に自動引っ越し (A3、**初期は dry-run mode** = Telegram 通知のみ) |
 | `handoff-archive.md` | `55 23 * * 0` | 日曜 23:55、`.claude/handoff/` 完了済 handoff の archive 候補を検出 → Telegram 通知 + 候補リスト commit (file-bloat-cleanup H6) |
 
 cron は claude.ai/code/routines に登録するもの。月次プリセットが UI に無いため、monthly-strategy-review は CLI `/schedule update` で `0 9 1 * *` を設定する必要あり。
