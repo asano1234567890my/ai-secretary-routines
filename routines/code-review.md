@@ -96,7 +96,6 @@ create_item(
   type="dev_note",
   priority="high",
   project="code-review",
-  lifecycle_stage="project",
   summary="コードレビュー YYYY-MM-DD",
   content=<下記構造の markdown>
 )

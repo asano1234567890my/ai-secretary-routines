@@ -12,7 +12,7 @@
 
 1. `read_full_context()` を冒頭で呼ぶ。active strategy / contexts / 直近 dev_note / pending strategy_proposals
 2. `read_markdown(repo="claude-shared", path="MyContext.md")` で「今やるべきこと」curated 文章
-3. `find_stale_items(stage="project", days_inactive=7)` で 7 日以上動いていない project items
+3. `find_stale_items(days_inactive=7)` で 7 日以上動いていない items (`stage` は廃止済 = 全 active items が対象。project への寄せは下記「声かけ対象の選定」で行う)
 4. (補完) active project の git commits 確認 — 「item は古いが commits は走ってた」場合は「実質 active」と判断して声かけ対象から外す。`list_repo_commits(repo=<該当 project の repo>, limit=10)` で過去 7 日に commit があるか確認
 
 ## 2. 声かけ対象の選定

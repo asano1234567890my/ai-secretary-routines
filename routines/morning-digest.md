@@ -103,7 +103,7 @@ Gmail の要対応が 2 件あります
 
 最後に必ずこの 2 つを呼ぶ:
 
-1. `create_item(type="memo", category="digest", project="morning-digest", lifecycle_stage="archive", summary="朝の概要 YYYY-MM-DD", content=<生成した本文>)` (v2 完全移行後は state="completed" に変更)
+1. `create_item(type="memo", category="digest", project="morning-digest", summary="朝の概要 YYYY-MM-DD", content=<生成した本文>)`
 2. `send_telegram_notification(text=<生成した本文>)`
 
 `summary` は 16 字以内。`YYYY-MM-DD` は JST の今日。

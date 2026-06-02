@@ -35,7 +35,7 @@ cloud Routine は永続 state を持てないため、ai-secretary `items` に *
 
 ### state アイテムの仕様
 
-- `type='memo'`、`project='prod-health-monitor'`、**`pinned=false`**、`lifecycle_stage='project'`
+- `type='memo'`、`project='prod-health-monitor'`、**`pinned=false`**
   - **重要 (pinned 索引に出さない)**: この state アイテムは毎日更新される。`type='dev_note'` + `pinned=true` にすると、毎日更新されるたびに pinned dev_note 索引 (上限 10 件、`read_full_context` が拾う) の先頭に常駐し、claude.ai の context を圧迫する (H7 で解消した bloat の再発)。よって **`type='memo'` + `pinned=false`** とし、pinned 索引にも dev_note 索引にも一切出さない。取得は `project='prod-health-monitor'` での検索で行う (§取得 参照)。
 - `summary` = `本番死活モニタ` (8 字、summary ルール準拠)
 - `content` = 下記 JSON を markdown コードブロックで埋め込む:

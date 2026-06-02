@@ -17,8 +17,8 @@
 4. **過去 7 日の commits = 進捗の主ソース**: `list_repo_commits(repo="claude-shared", limit=20)` + active な開発リポ (例: `oncall-app` / `ai-secretary` / `resident-duty-app` / `josler-jin-auto`) のうち、MyContext や read_full_context.active_strategy で今週主役級だったものを 2〜3 個選んで `list_repo_commits(limit=15)` を呼ぶ。**全リポは呼ばない**
 5. **過去 7 日の dev_note と memo (補助)**: `list_recent(type="dev_note", limit=15)` と `list_recent(type="memo", limit=15)`。created_at が past 7d 以内のものを抽出
 6. **過去 7 日の schedule**: `search_items(type="schedule", days_within=7, limit=20)`
-7. **完了タスク**: `search_items(type="todo", status="done", days_within=7, limit=20)`
-8. `find_stale_items(stage="project", days_inactive=14)` で 2 週間以上動いてない project (Telegram 側で「気になっていること」に統合する判断材料)
+7. **完了タスク**: `search_items(type="todo", state="completed", days_within=7, limit=20)`
+8. `find_stale_items(days_inactive=14)` で 2 週間以上動いてない items (Telegram 側で「気になっていること」に統合する判断材料)
 
 ## 2. 出力 1: WEEKLY_REVIEW.md への append
 

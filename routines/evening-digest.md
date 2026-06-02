@@ -11,8 +11,8 @@
 
 1. `read_full_context()` を冒頭で呼ぶ
 2. `read_markdown(repo="claude-shared", path="MyContext.md")` で curated 文章
-3. **明日の予定 (GCal)**: `search_items(type="schedule", due_from=<明日 0:00 JST の UTC ISO>, due_to=<明後日 0:00 JST の UTC ISO>, status="active", limit=10)`
-4. **明日の締切 TODO**: `search_items(type="todo", due_from=<明日 0:00 JST>, due_to=<明後日 0:00 JST>, status="active", limit=10)`
+3. **明日の予定 (GCal)**: `search_items(type="schedule", due_from=<明日 0:00 JST の UTC ISO>, due_to=<明後日 0:00 JST の UTC ISO>, state="active", limit=10)`
+4. **明日の締切 TODO**: `search_items(type="todo", due_from=<明日 0:00 JST>, due_to=<明後日 0:00 JST>, state="active", limit=10)`
 5. **未処理メール**: `list_gmail_threads_needing_reply(importance="high", hours_back=24)`
 6. `find_overdue_items(grace_days=0)` で期限超過項目
 7. **今日の動き** = git commits: active project 2〜3 個に `list_repo_commits(repo=<slug>, limit=8)` で過去 24h を確認 (冒頭の文脈反映用)
@@ -101,5 +101,5 @@ Render の build failed 通知 1 件は
 
 ## 5. 保存と送信
 
-1. `create_item(type="memo", category="digest", project="evening-digest", lifecycle_stage="archive", summary="夜の概要 YYYY-MM-DD", content=<本文>)`
+1. `create_item(type="memo", category="digest", project="evening-digest", summary="夜の概要 YYYY-MM-DD", content=<本文>)`
 2. `send_telegram_notification(text=<本文>)`

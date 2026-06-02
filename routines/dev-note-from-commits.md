@@ -40,7 +40,7 @@
 1. `list_repo_commits({ repo: "<slug>", since: "<7日前 ISO>", limit: 100 })` で直近 1 週間の commit を取得
 2. **commit が 0 件の repo はスキップ** (dev_note を作らない)
 3. commit が 1 件以上の repo ごとに、下記フォーマットの content (markdown) を生成
-4. `create_item({ type: "dev_note", summary: "<8-16字>", content: "<markdown>", project: "<slug>", tags: ["dev-log", "auto-generated", "<slug>"], priority: "normal", lifecycle_stage: "project" })` で 1 件保存
+4. `create_item({ type: "dev_note", summary: "<8-16字>", content: "<markdown>", project: "<slug>", tags: ["dev-log", "auto-generated", "<slug>"], priority: "normal" })` で 1 件保存
 
 diff の中身までは原則読みません (commit message 主体)。特に内容を補足したい大きな commit があれば `get_commit_detail({ repo, sha })` でファイル一覧・統計を取って要約に添えても構いませんが、patch (`include_patch`) は基本不要です (content が長大化するため)。
 
@@ -84,7 +84,6 @@ commit hash は short_sha (7 桁)、message は 1 行目 (subject) のみ。auth
 - `tags`: `["dev-log", "auto-generated", "<repo-slug>"]` (検索・後追いのため repo slug を必ず含める)
 - `project`: repo slug (例: `oncall-app`)
 - `priority`: `normal`
-- `lifecycle_stage`: `project`
 
 ### pin しない
 
