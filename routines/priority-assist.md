@@ -11,21 +11,23 @@
 ## 1. データ収集 (この順序で)
 
 1. `read_full_context()` を冒頭で呼ぶ
-2. `read_markdown(repo="claude-shared", path="MyContext.md")` で「今やるべきこと」curated 文章
-3. `read_markdown(repo="claude-shared", path="LIFE_STRATEGY.md")` で current_actions の最新
-4. `get_today_workload()` で今日の GCal events + due_today + overdue + active_projects を集約
-5. `list_due_srs_reviews(limit=5)` で当日の医療知識 SRS 復習対象を取得 (Phase 10.8、handoff: srs-medical-knowledge-review)
+2. **`read_markdown(repo="claude-shared", path="MASA_WORK_SCHEDULE.md")` で MASA の週間勤務ベースラインを取得** (今日の曜日の勤務内容・重さ・トーン指針。全判断の土台)
+3. `read_markdown(repo="claude-shared", path="MyContext.md")` で「今やるべきこと」curated 文章
+4. `read_markdown(repo="claude-shared", path="LIFE_STRATEGY.md")` で current_actions の最新
+5. `get_today_workload()` で今日の GCal events + due_today + overdue + active_projects を集約
+6. `list_due_srs_reviews(limit=5)` で当日の医療知識 SRS 復習対象を取得 (Phase 10.8、handoff: srs-medical-knowledge-review)
 
 ## 2. judgment の生成
 
 以下の観点で「今日の見立て」を作る:
 
-### A. 重さの判定
+### A. 重さの判定 (週間ベースラインが土台)
 
-GCal events の合計時間 + situation を見て今日の重さを判定:
-- **重い日**: oncall situation / sick / 4h 以上の会議が固まっている / focus 期間
-- **軽い日**: 会議 1〜2 件 / 半日空き
-- **普通**: 上記以外
+**MASA_WORK_SCHEDULE.md の今日の曜日の「重さ」を土台にする** (疲労は時間の長さでなく「多くの人を診るか・手技の数・当直の有無」で決まる):
+- 月 (終日外来) = 最重 / 木 (今里透析・遠征) = 重い / 水 = それなり / 土 (午前勤務) = 楽なほう / 火 (研究日) = 休み / 日 = 休み
+- **金は手技数次第**: get_today_workload / GCal に今日の手術・腎生検・手技が明示されていれば重い、無ければ楽。予定に明示が無ければ「手技があるか要確認」とし **"空 = 手技0" と断定しない** (Phase 2 で腎内カレンダーから正確化予定)
+- **当直が GCal 等に明示されていれば別格で最重** (無ければ推測しない)
+- GCal の会議・不在・situation (oncall/sick 等) はこの土台を補正する材料 (固まる/不在なら上下)
 
 ### B. 主役選び
 
@@ -121,10 +123,11 @@ commit_to_repo(
 
 ## 5. スキップ条件
 
-以下なら commit も呼ばずに静かに終了:
+**曜日ベースで判定する (get_today_workload が空でも平日は休みではない)**:
 
-- get_today_workload が空 (今日の予定も due もない、完全フリー日) → TODAY.md を「今日は予定なし。ゆっくり過ごせる日です」とだけ書く 1 行版で commit (morning-digest がそれを読んで空白日 digest を組む)
-- read_full_context() が空に近い (DB 接続エラー等) → commit せず終了
+- **今日が火 (研究日) または 日 = 休み** → TODAY.md を「今日は休み (研究日/日曜)。自分の時間・研究に使える日」とし、主役は本人の研究・開発・学習から選ぶ (臨床タスクを主役にしない)
+- **今日が月〜土 (火除く) = 通常勤務日**: get_today_workload が空でも「予定なし = フリー」と書かず、週間ベースラインの勤務内容 (外来/透析/救急当番/今里 等) を前提に主役・重さを組む。個別予定が無いのは「個別イベントが無いだけで通常勤務」の意味
+- read_full_context() が空に近い (DB 接続エラー等) → commit せず終了 (これは維持)
 
 ## 6. 失敗時の挙動
 
