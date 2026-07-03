@@ -18,7 +18,7 @@
    - `context_id === null` (= 未分類、どの context にも紐付いていない)
    - `created_at < now - 7 days` (= 7 日以上放置)
 4. type 別カウント (memo / dev_note / その他) と、created_at が古い順ソート
-5. (可能なら) `find_duplicate_items(scope="inbox", threshold=0.85, limit=10)` で重複候補
+5. (可能なら) `find_duplicate_items(inbox_only=true, threshold=0.85, limit=10)` で重複候補 (backend に `scope` 引数は無く `inbox_only` が正、2026-07-04 修正)
 
 ## 2. 該当 0 件のとき
 
