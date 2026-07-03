@@ -15,7 +15,8 @@
 3. `read_markdown(repo="claude-shared", path="MyContext.md")` で「今やるべきこと」curated 文章
 4. `read_markdown(repo="claude-shared", path="LIFE_STRATEGY.md")` で current_actions の最新
 5. `get_today_workload()` で今日の GCal events + due_today + overdue + active_projects を集約
-6. `list_due_srs_reviews(limit=5)` で当日の医療知識 SRS 復習対象を取得 (Phase 10.8、handoff: srs-medical-knowledge-review)
+6. **`get_clinical_schedule(date_from=<今日 YYYY-MM-DD JST>, date_to=<今日>)` で腎内カレンダーの当直・手術・手技・不在を取得** (Phase 2、handoff: digest-clinical-overlay)。当日分は `days[0]` (`duties` / `procedures` [手術/検査] / `other_events` [会議/その他] / `is_absent` / `absence_reasons`)。**重さ判定 (A) の主ソース**。`{error}` が返ったら実データ無しとして A のフォールバックに従う
+7. `list_due_srs_reviews(limit=5)` で当日の医療知識 SRS 復習対象を取得 (Phase 10.8、handoff: srs-medical-knowledge-review)
 
 ## 2. judgment の生成
 
@@ -25,8 +26,11 @@
 
 **MASA_WORK_SCHEDULE.md の今日の曜日の「重さ」を土台にする** (疲労は時間の長さでなく「多くの人を診るか・手技の数・当直の有無」で決まる):
 - 月 (終日外来) = 最重 / 木 (今里透析・遠征) = 重い / 水 = それなり / 土 (午前勤務) = 楽なほう / 火 (研究日) = 休み / 日 = 休み
-- **金は手技数次第**: get_today_workload / GCal に今日の手術・腎生検・手技が明示されていれば重い、無ければ楽。予定に明示が無ければ「手技があるか要確認」とし **"空 = 手技0" と断定しない** (Phase 2 で腎内カレンダーから正確化予定)
-- **当直が GCal 等に明示されていれば別格で最重** (無ければ推測しない)
+- **当直 (`get_clinical_schedule` の実データで断定)**: 当日 `days[0].duties` に当直があれば**別格で最重** (夜間拘束、翌日の疲労も見込む)
+- **金は手技数次第 (`get_clinical_schedule` の実データで断定してよい)**: 当日 `days[0].procedures` (手術/検査) の件数で軽重を決める。**0 件ならめっちゃ楽 / 複数件なら重い**。`other_events` (会議/その他) は手技件数に数えない。Phase 1 の「"空=手技0" と断定しない/要確認」の hedge は**実データが取れる前提では不要** (実データで断定する)
+- **不在**: 当日 `days[0].is_absent` / `absence_reasons` を反映
+- **当直と不在 (`is_absent`) が同日なら当直=最重を優先する** (不在で軽く見積もらない)
+- **`get_clinical_schedule` が `{error}` を返した時だけ** (env 未設定・接続失敗等) は週間ベースライン (上記曜日) に戻し、当直・手技は「不明」として**推測しない** (旧 hedge をこの場合のみ維持)
 - GCal の会議・不在・situation (oncall/sick 等) はこの土台を補正する材料 (固まる/不在なら上下)
 
 ### B. 主役選び
