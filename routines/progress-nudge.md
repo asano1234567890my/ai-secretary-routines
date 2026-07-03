@@ -11,9 +11,20 @@
 ## 1. データ収集 (この順序で)
 
 1. `read_full_context()` を冒頭で呼ぶ。active strategy / contexts / 直近 dev_note / pending strategy_proposals
-2. `read_markdown(repo="claude-shared", path="MyContext.md")` で「今やるべきこと」curated 文章
-3. `find_stale_items(days_inactive=7)` で 7 日以上動いていない items (`stage` は廃止済 = 全 active items が対象。project への寄せは下記「声かけ対象の選定」で行う)
-4. (補完) active project の git commits 確認 — 「item は古いが commits は走ってた」場合は「実質 active」と判断して声かけ対象から外す。`list_repo_commits(repo=<該当 project の repo>, limit=10)` で過去 7 日に commit があるか確認
+2. **`read_markdown(repo="claude-shared", path="MASA_WORK_SCHEDULE.md")` で週間勤務ベースライン** + **`get_clinical_schedule(date_from=<今日 YYYY-MM-DD JST>, date_to=<今日>)`** で今日の当直・手技を取得 (下記「1.5 発火可否」の判定に使う。Phase 2、`{error}` なら曜日ベースラインにフォールバック)
+3. `read_markdown(repo="claude-shared", path="MyContext.md")` で「今やるべきこと」curated 文章
+4. `find_stale_items(days_inactive=7)` で 7 日以上動いていない items (`stage` は廃止済 = 全 active items が対象。project への寄せは下記「声かけ対象の選定」で行う)
+5. **`search_items(type="memo", project="progress-nudge", include_digests=true, days_within=7, limit=20)` で直近7日の声かけログ** を取得 (cooldown 判定用。各ログ content の `target_project=<slug>` を集めて「7日以内に声かけ済みの project 集合」を作る)
+6. (補完) active project の git commits 確認 — 「item は古いが commits は走ってた」場合は「実質 active」と判断して声かけ対象から外す。`list_repo_commits(repo=<該当 project の repo>, limit=10)` で過去 7 日に commit があるか確認
+
+## 1.5 発火可否 (疲れた日は送らない)
+
+`get_clinical_schedule` (§1-2) と MASA_WORK_SCHEDULE から今日を見て、以下なら **声かけを送らず静かに終了** (Telegram も create_item も呼ばない):
+
+- 今日が**当直** (`days[0].duties[].type` に「当直」)
+- 今日が**最重** = 月 (終日外来) / 木 (今里透析・遠征) / 金で `days[0].procedures` が非空 (手技あり)
+
+`get_clinical_schedule` が `{error}` の時は当直・手技不明として、曜日ベースラインで判定 (月=外来・木=今里 は最重でスキップ / 金は手技不明なので送ってよい)。18:00 に「もう一仕事」を疲れた日・当直前に送らないのが目的。
 
 ## 2. 声かけ対象の選定
 
@@ -22,6 +33,7 @@
 - LIFE_STRATEGY current_actions / MyContext「今やるべきこと」と整合する project を最優先 (本来やりたいが手が回ってない、と判断)
 - それ以外は「優先度低めで放置 OK」かもしれない、声かけ対象から外す
 - commits が走ってた project は除外
+- **7日以内に声かけ済みの project は除外** (§1-5 の cooldown 集合。同じ project を毎日声かけしない)。比較は候補 item の `project` フィールド値 ↔ ログの `target_project`
 - すべて除外されたら **静かに終了** (Telegram も create_item も呼ばない)
 
 ## 3. Telegram 通知
@@ -66,6 +78,20 @@ josler-auto の Word 取込テストが
 無理ない選択でどうぞ。
 ```
 
+### 送信後の記録 (cooldown 用・必須)
+
+声かけを送ったら必ず記録する (次回以降の cooldown 判定用の隠しログ):
+
+```
+create_item(
+  type="memo", category="digest", project="progress-nudge",
+  summary="声かけ <project> YYYY-MM-DD",
+  content="target_project=<声かけした item の project フィールド値>\ndate=YYYY-MM-DD"
+)
+```
+
+`category="digest"` なので通常の一覧/検索/inbox には出ない (§1-5 の `include_digests=true` でだけ読める)。`content` の `target_project` が次回の cooldown 比較キー。`create_item` 失敗時は声かけ済みなので無視 (最悪、翌日重複=許容)。
+
 ### 「全 project active」のとき
 
 `find_stale_items` 結果が 0 件の場合 (= 全 project が直近 7 日に動いてる、健康な状態):
@@ -85,10 +111,10 @@ josler-auto の Word 取込テストが
 
 - `inbox-triage` (土曜 18:00) は inbox stage の滞留。こちらは project stage の停滞。同じ 18:00 だが土曜は inbox-triage が動く (cron 上は両方動くが内容が違う)
 - `weekly-review` (日曜 23:00) も `find_stale_items` を使うが、こちらは「気になっていること」セクションに統合する材料用。progress-nudge は単独で 1 件だけピックアップ
-- 同じ project に毎日声かけが続くと圧になるので、将来的には「同 project の声かけは 7 日に 1 回まで」のクールダウン実装を検討 (PoC 段階は無し)
+- 同じ project への声かけは **7 日に 1 回まで (cooldown、§1-5/§2/§3送信後の記録 で実装済 2026-07-03)**。当直/最重日は §1.5 でスキップ
 
 ## 6. 拡張ロードマップ
 
-- 連続声かけ抑制: 同 project への声かけは 7 日に 1 回まで (cooldown)
+- ~~連続声かけ抑制: 同 project への声かけは 7 日に 1 回まで (cooldown)~~ **✅ 実装済 (2026-07-03、handoff daily-routine-repetition-fix)**
 - 健康記録: 「全 project active」の日数を週次集計して達成感に
 - claude.ai 会話で「最近何の声かけが多い?」に答えられるよう、create_item で記録しておく案 (現状は記録なし、軽量化)

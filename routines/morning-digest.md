@@ -17,7 +17,7 @@
 6. **`get_clinical_schedule(date_from=<今日 YYYY-MM-DD JST>, date_to=<今日>)`** で腎内カレンダーの当直・手術・手技・不在を取得 (Phase 2、handoff: digest-clinical-overlay)。当日分は `days[0]`。§2「週間ベースラインの適用」で当直・手技・不在を実データで断定するのに使う
 7. `list_gmail_threads_needing_reply(importance="high", hours_back=12)` で要返信メール
 8. **進捗の主ソース** = git commits: `read_full_context().active_strategy` で重要 project を 2〜3 個選び、それぞれ `list_repo_commits(repo=<slug>, limit=10)` で過去 24h 程度の動きを把握。dev_note は補助 (`pinned_dev_notes` で長期的に重要なもの + `recent_dev_notes` 直近 10 件を見て、commit に出ない動きを拾う、H7 で索引拡張)
-9. **繰り返し防止**: `list_recent(include_digests=true, limit=6)` で直近の朝夜の便り (category=digest) を読み、昨日までに書いた主役・助言・定型文と重複しないようにする (§3 参照)
+9. **繰り返し防止**: `list_recent(include_digests=true, limit=14)` で直近の便り (category=digest) を読み、**取得後に project が morning-digest / evening-digest のものだけを繰り返し判定に使う** (progress-nudge 等の hidden ログを除外)。昨日までに書いた主役・助言・定型文と重複しないようにする (§3 参照)
 
 ## 2. 組み立てルール
 

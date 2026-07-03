@@ -18,7 +18,7 @@
 7. **未処理メール**: `list_gmail_threads_needing_reply(importance="high", hours_back=24)`
 8. `find_overdue_items(grace_days=0)` で期限超過項目
 9. **今日の動き** = git commits: active project 2〜3 個に `list_repo_commits(repo=<slug>, limit=8)` で過去 24h を確認 (冒頭の文脈反映用)
-10. **繰り返し防止**: `list_recent(include_digests=true, limit=6)` で直近の便りを読み、同じ文・助言の繰り返しを避ける (§3 参照)
+10. **繰り返し防止**: `list_recent(include_digests=true, limit=14)` で直近の便りを読み、**取得後に project が morning-digest / evening-digest のものだけを繰り返し判定に使う** (progress-nudge 等の hidden ログを除外)、同じ文・助言の繰り返しを避ける (§3 参照)
 
 JST 日付境界: now を JST に変換 → 翌日 00:00 JST = UTC 前日 15:00。
 
